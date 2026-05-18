@@ -3,174 +3,104 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 import {
   Home,
-  Search,
-  Calendar,
-  User
+  Wrench,
+  Car,
+  User,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  Phone,
+  MapPin
 } from 'lucide-react'
 
-import ferrari from './assets/ferrari.PNG'
-import lambo from './assets/lambo.PNG'
-import bmw from './assets/bmw.PNG'
-import mercedes from './assets/mercedes.PNG'
-import rolls from './assets/rolls.PNG'
-import mclaren from './assets/mclaren.PNG'
-import bugatti from './assets/bugatti.PNG'
+const services = [
+  {
+    id: 1,
+    title: 'Замена масла',
+    duration: '1 час',
+    estimate: '$120',
+    description: 'Полная замена масла и масляного фильтра',
+    category: 'ТО'
+  },
 
-const popularCars = [
   {
-    name: 'Ferrari SF90',
-    price: '$1200/day',
-    image: ferrari
+    id: 2,
+    title: 'Диагностика двигателя',
+    duration: '2 часа',
+    estimate: '$250',
+    description: 'Компьютерная диагностика и проверка двигателя',
+    category: 'Диагностика'
   },
+
   {
-    name: 'Lamborghini Revuelto',
-    price: '$1500/day',
-    image: lambo
+    id: 3,
+    title: 'Тормозная система',
+    duration: '3 часа',
+    estimate: '$340',
+    description: 'Замена тормозных колодок и обслуживание системы',
+    category: 'Ремонт'
   },
+
   {
-    name: 'BMW M4 Competition',
-    price: '$650/day',
-    image: bmw
+    id: 4,
+    title: 'Ремонт подвески',
+    duration: '5 часов',
+    estimate: '$680',
+    description: 'Проверка и ремонт подвески автомобиля',
+    category: 'Ремонт'
   }
 ]
 
-const luxuryCars = [
+const myCars = [
   {
-    name: 'Mercedes AMG GT',
-    price: '$900/day',
-    image: mercedes
+    id: 1,
+    brand: 'BMW',
+    model: 'M5 F90',
+    plate: '01A777AA',
+    mileage: '58 000 км',
+    nextService: 'Замена масла через 1200 км'
   },
+
   {
-    name: 'Rolls Royce Spectre',
-    price: '$1800/day',
-    image: rolls
-  },
-  {
-    name: 'McLaren 720S',
-    price: '$1400/day',
-    image: mclaren
-  },
-  {
-    name: 'Bugatti Chiron',
-    price: '$3500/day',
-    image: bugatti
+    id: 2,
+    brand: 'Mercedes',
+    model: 'AMG GT',
+    plate: '10B505BB',
+    mileage: '32 000 км',
+    nextService: 'Скоро обслуживание тормозов'
   }
 ]
-
-const allCars = [
-  ...popularCars,
-  ...luxuryCars
-]
-
-function CarSection({ title, cars, setSelectedCar }) {
-  return (
-    <div className="mb-8">
-
-      <div className="flex items-center justify-between mb-4">
-
-        <h2 className="text-xl font-semibold">
-          {title}
-        </h2>
-
-        <button className="text-zinc-500 text-sm">
-          See all
-        </button>
-
-      </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-2">
-
-        {cars.map((car, index) => (
-
-          <motion.div
-            whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.02 }}
-            key={index}
-            onClick={() => setSelectedCar(car)}
-            className="min-w-[170px] bg-[#181818] rounded-[28px] overflow-hidden border border-zinc-800 cursor-pointer"
-          >
-
-            <img
-              src={car.image}
-              alt=""
-              className="w-full h-[190px] object-cover"
-            />
-
-            <div className="p-4">
-
-              <h3 className="font-medium text-[15px]">
-                {car.name}
-              </h3>
-
-              <p className="text-zinc-500 text-sm mt-1">
-                {car.price}
-              </p>
-
-              <button className="mt-4 w-full bg-white text-black py-2 rounded-xl text-sm font-medium">
-                Rent
-              </button>
-
-            </div>
-
-          </motion.div>
-
-        ))}
-
-      </div>
-
-    </div>
-  )
-}
 
 export default function App() {
 
-  const [selectedCar, setSelectedCar] = useState(null)
   const [activeTab, setActiveTab] = useState('home')
-  const [bookingConfirmed, setBookingConfirmed] = useState(false)
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
+  const [selectedService, setSelectedService] = useState(null)
+
+  const [bookingStep, setBookingStep] = useState(1)
+
+  const [selectedCar, setSelectedCar] = useState('BMW M5 F90')
+
+  const [selectedTime, setSelectedTime] = useState('12:00')
+
+  const [bookingConfirmed, setBookingConfirmed] = useState(false)
 
   const [profileModal, setProfileModal] = useState(null)
 
-  const filteredCars = allCars.filter((car) => {
+  const [repairApproved, setRepairApproved] = useState(false)
 
-    const matchesSearch =
-      car.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const [emergencyModal, setEmergencyModal] = useState(false)
 
-    if (activeCategory === 'All') {
-      return matchesSearch
-    }
+  const [toast, setToast] = useState('')
 
-    if (activeCategory === 'Sport') {
-      return matchesSearch &&
-        (
-          car.name.includes('Ferrari') ||
-          car.name.includes('Lamborghini') ||
-          car.name.includes('McLaren') ||
-          car.name.includes('Bugatti')
-        )
-    }
+  const showToast = (text) => {
 
-    if (activeCategory === 'Luxury') {
-      return matchesSearch &&
-        (
-          car.name.includes('Rolls') ||
-          car.name.includes('Mercedes')
-        )
-    }
+    setToast(text)
 
-    if (activeCategory === 'German') {
-      return matchesSearch &&
-        (
-          car.name.includes('BMW') ||
-          car.name.includes('Mercedes')
-        )
-    }
-
-    return matchesSearch
-
-  })
+    setTimeout(() => {
+      setToast('')
+    }, 2500)
+  }
 
   return (
 
@@ -188,133 +118,134 @@ export default function App() {
             activeTab === 'home' && (
 
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
 
-                <div className="mb-7">
+                <div className="mb-8">
 
-                  <p className="text-zinc-500 text-sm mb-2">
-                    Premium Rental
+                  <p className="text-zinc-500 text-sm">
+                    Премиум Автосервис
                   </p>
 
-                  <h1 className="text-3xl font-bold tracking-tight">
-                    Arendocar
+                  <h1 className="text-3xl font-bold mt-2">
+                    Arendocar Service
                   </h1>
 
                 </div>
 
-                <div className="mb-7">
+                <div className="bg-[#181818] border border-zinc-800 rounded-[30px] p-5 mb-6">
 
-                  <div className="bg-[#181818] border border-zinc-800 rounded-2xl px-4 py-4 flex items-center gap-3">
+                  <div className="flex items-center gap-3">
 
-                    <Search size={18} className="text-zinc-500" />
+                    <Clock className="text-orange-400" />
 
-                    <input
-                      type="text"
-                      placeholder="Search premium cars..."
-                      className="bg-transparent outline-none text-sm w-full"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <div>
+
+                      <p className="text-zinc-500 text-sm">
+                        Активный ремонт
+                      </p>
+
+                      <h2 className="text-xl font-semibold mt-1">
+                        Диагностика BMW M5
+                      </h2>
+
+                    </div>
+
+                  </div>
+
+                  <div className="mt-6">
+
+                    <div className="flex items-center justify-between mb-2">
+
+                      <p className="text-sm">
+                        Прогресс ремонта
+                      </p>
+
+                      <p className="text-sm text-zinc-500">
+                        70%
+                      </p>
+
+                    </div>
+
+                    <div className="w-full bg-zinc-800 rounded-full h-2">
+
+                      <div className="bg-white h-2 rounded-full w-[70%]"></div>
+
+                    </div>
 
                   </div>
 
                 </div>
 
-                <div className="flex gap-3 overflow-x-auto mb-8">
+                <button
+                  onClick={() => setEmergencyModal(true)}
+                  className="w-full bg-red-500 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 mb-8"
+                >
 
-                  <button
-                    onClick={() => setActiveCategory('All')}
-                    className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
-                      activeCategory === 'All'
-                        ? 'bg-white text-black'
-                        : 'bg-[#181818] text-white'
-                    }`}
-                  >
-                    All
-                  </button>
+                  <AlertTriangle size={20} />
 
-                  <button
-                    onClick={() => setActiveCategory('Sport')}
-                    className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
-                      activeCategory === 'Sport'
-                        ? 'bg-white text-black'
-                        : 'bg-[#181818] text-white'
-                    }`}
-                  >
-                    Sport
-                  </button>
+                  Экстренная помощь
 
-                  <button
-                    onClick={() => setActiveCategory('Luxury')}
-                    className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
-                      activeCategory === 'Luxury'
-                        ? 'bg-white text-black'
-                        : 'bg-[#181818] text-white'
-                    }`}
-                  >
-                    Luxury
-                  </button>
+                </button>
 
-                  <button
-                    onClick={() => setActiveCategory('German')}
-                    className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
-                      activeCategory === 'German'
-                        ? 'bg-white text-black'
-                        : 'bg-[#181818] text-white'
-                    }`}
-                  >
-                    German
-                  </button>
+                <div className="space-y-5">
 
-                </div>
+                  {
+                    services.map((service) => (
 
-                <CarSection
-                  title="Available Cars"
-                  cars={filteredCars}
-                  setSelectedCar={setSelectedCar}
-                />
+                      <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        key={service.id}
+                        className="bg-[#181818] border border-zinc-800 rounded-[30px] p-5"
+                      >
 
-              </motion.div>
+                        <div className="flex items-start justify-between">
 
-            )
-          }
+                          <div>
 
-          {
-            activeTab === 'search' && (
+                            <p className="text-zinc-500 text-sm">
+                              {service.category}
+                            </p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pt-10"
-              >
+                            <h2 className="text-2xl font-bold mt-2">
+                              {service.title}
+                            </h2>
 
-                <h1 className="text-3xl font-bold mb-6">
-                  Search
-                </h1>
+                          </div>
 
-                <div className="bg-[#181818] border border-zinc-800 rounded-2xl px-4 py-4 flex items-center gap-3">
+                          <div className="text-right">
 
-                  <Search size={18} className="text-zinc-500" />
+                            <p className="font-semibold">
+                              {service.estimate}
+                            </p>
 
-                  <input
-                    type="text"
-                    placeholder="Search Ferrari, BMW..."
-                    className="bg-transparent outline-none text-sm w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                            <p className="text-zinc-500 text-sm mt-1">
+                              {service.duration}
+                            </p>
 
-                </div>
+                          </div>
 
-                <div className="mt-8">
+                        </div>
 
-                  <CarSection
-                    title="Search Results"
-                    cars={filteredCars}
-                    setSelectedCar={setSelectedCar}
-                  />
+                        <p className="text-zinc-400 mt-5">
+                          {service.description}
+                        </p>
+
+                        <button
+                          onClick={() => {
+                            setSelectedService(service)
+                            setBookingStep(1)
+                          }}
+                          className="w-full bg-white text-black py-4 rounded-2xl font-semibold mt-6"
+                        >
+                          Записаться
+                        </button>
+
+                      </motion.div>
+
+                    ))
+                  }
 
                 </div>
 
@@ -324,63 +255,170 @@ export default function App() {
           }
 
           {
-            activeTab === 'booking' && (
+            activeTab === 'repair' && (
 
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pt-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
 
-                <h1 className="text-3xl font-bold mb-6">
-                  My Bookings
+                <h1 className="text-3xl font-bold mb-8">
+                  Статус ремонта
                 </h1>
 
-                {
-                  bookingConfirmed ? (
+                <div className="space-y-5">
 
-                    <motion.div
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-[#181818] rounded-[30px] p-6 border border-zinc-800"
-                    >
+                  <div className="bg-[#181818] rounded-[30px] p-5 border border-zinc-800">
 
-                      <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-4xl mx-auto">
-                        ✓
-                      </div>
+                    <div className="flex items-center gap-3">
 
-                      <h2 className="text-2xl font-bold text-center mt-6">
-                        Booking Confirmed
-                      </h2>
+                      <CheckCircle2 className="text-green-500" />
 
-                      <p className="text-zinc-500 text-center mt-3">
-                        Your premium vehicle has been successfully reserved.
-                      </p>
-
-                    </motion.div>
-
-                  ) : (
-
-                    <div className="bg-[#181818] rounded-[30px] p-5 border border-zinc-800">
-
-                      <img
-                        src={ferrari}
-                        alt=""
-                        className="w-full h-[220px] object-cover rounded-[24px]"
-                      />
-
-                      <h2 className="text-2xl font-semibold mt-5">
-                        Ferrari SF90
-                      </h2>
-
-                      <p className="text-zinc-500 mt-2">
-                        No active bookings yet
-                      </p>
+                      <p>Автомобиль принят</p>
 
                     </div>
 
-                  )
-                }
+                  </div>
+
+                  <div className="bg-[#181818] rounded-[30px] p-5 border border-zinc-800">
+
+                    <div className="flex items-center gap-3">
+
+                      <CheckCircle2 className="text-green-500" />
+
+                      <p>Диагностика завершена</p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="bg-[#181818] rounded-[30px] p-5 border border-orange-500">
+
+                    <h2 className="text-xl font-bold">
+                      Требуется подтверждение
+                    </h2>
+
+                    <p className="text-zinc-400 mt-3">
+                      Обнаружена проблема в передней подвеске.
+                    </p>
+
+                    <p className="text-2xl font-bold mt-5">
+                      $420
+                    </p>
+
+                    {
+                      !repairApproved ? (
+
+                        <div className="flex gap-3 mt-6">
+
+                          <button
+                            onClick={() => {
+                              setRepairApproved(true)
+                              showToast('Ремонт подтвержден')
+                            }}
+                            className="flex-1 bg-white text-black py-3 rounded-2xl font-semibold"
+                          >
+                            Подтвердить
+                          </button>
+
+                          <button
+                            onClick={() => showToast('Запрос отклонен')}
+                            className="flex-1 bg-zinc-800 py-3 rounded-2xl font-semibold"
+                          >
+                            Отклонить
+                          </button>
+
+                        </div>
+
+                      ) : (
+
+                        <div className="bg-green-500/20 border border-green-500 rounded-2xl p-4 mt-6">
+
+                          Ремонт успешно подтвержден
+
+                        </div>
+
+                      )
+                    }
+
+                  </div>
+
+                </div>
+
+              </motion.div>
+
+            )
+          }
+
+          {
+            activeTab === 'cars' && (
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+
+                <div className="flex items-center justify-between mb-8">
+
+                  <h1 className="text-3xl font-bold">
+                    Мои автомобили
+                  </h1>
+
+                  <button
+                    onClick={() => showToast('Новый автомобиль добавлен')}
+                    className="bg-white text-black px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    Добавить
+                  </button>
+
+                </div>
+
+                <div className="space-y-5">
+
+                  {
+                    myCars.map((car) => (
+
+                      <div
+                        key={car.id}
+                        className="bg-[#181818] rounded-[30px] p-5 border border-zinc-800"
+                      >
+
+                        <div className="flex items-center justify-between">
+
+                          <div>
+
+                            <h2 className="text-2xl font-bold">
+                              {car.brand} {car.model}
+                            </h2>
+
+                            <p className="text-zinc-500 mt-2">
+                              {car.plate}
+                            </p>
+
+                          </div>
+
+                          <Car size={28} />
+
+                        </div>
+
+                        <div className="mt-6 space-y-2">
+
+                          <p className="text-zinc-400">
+                            Пробег: {car.mileage}
+                          </p>
+
+                          <p className="text-orange-400">
+                            {car.nextService}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    ))
+                  }
+
+                </div>
 
               </motion.div>
 
@@ -391,12 +429,11 @@ export default function App() {
             activeTab === 'profile' && (
 
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pt-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
 
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center pt-5">
 
                   <div className="w-28 h-28 rounded-full bg-gradient-to-br from-red-500 to-orange-500 mb-5"></div>
 
@@ -405,32 +442,32 @@ export default function App() {
                   </h1>
 
                   <p className="text-zinc-500 mt-2">
-                    Premium Member
+                    Premium Service Member
                   </p>
 
                 </div>
 
-                <div className="mt-10 space-y-4">
-
-                  <button
-                    onClick={() => setProfileModal('payment')}
-                    className="bg-[#181818] p-5 rounded-2xl border border-zinc-800 w-full text-left"
-                  >
-                    Payment Methods
-                  </button>
+                <div className="space-y-4 mt-10">
 
                   <button
                     onClick={() => setProfileModal('history')}
-                    className="bg-[#181818] p-5 rounded-2xl border border-zinc-800 w-full text-left"
+                    className="w-full bg-[#181818] border border-zinc-800 rounded-2xl p-5 text-left"
                   >
-                    Rental History
+                    История обслуживания
                   </button>
 
                   <button
-                    onClick={() => setProfileModal('settings')}
-                    className="bg-[#181818] p-5 rounded-2xl border border-zinc-800 w-full text-left"
+                    onClick={() => setProfileModal('notifications')}
+                    className="w-full bg-[#181818] border border-zinc-800 rounded-2xl p-5 text-left"
                   >
-                    Settings
+                    Напоминания
+                  </button>
+
+                  <button
+                    onClick={() => setProfileModal('payments')}
+                    className="w-full bg-[#181818] border border-zinc-800 rounded-2xl p-5 text-left"
+                  >
+                    Способы оплаты
                   </button>
 
                 </div>
@@ -455,31 +492,31 @@ export default function App() {
               }`}
             >
               <Home size={22} />
-              <span className="text-xs mt-1">Home</span>
+              <span className="text-xs mt-1">Главная</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('search')}
+              onClick={() => setActiveTab('repair')}
               className={`flex flex-col items-center ${
-                activeTab === 'search'
+                activeTab === 'repair'
                   ? 'text-white'
                   : 'text-zinc-500'
               }`}
             >
-              <Search size={22} />
-              <span className="text-xs mt-1">Search</span>
+              <Wrench size={22} />
+              <span className="text-xs mt-1">Ремонт</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('booking')}
+              onClick={() => setActiveTab('cars')}
               className={`flex flex-col items-center ${
-                activeTab === 'booking'
+                activeTab === 'cars'
                   ? 'text-white'
                   : 'text-zinc-500'
               }`}
             >
-              <Calendar size={22} />
-              <span className="text-xs mt-1">Booking</span>
+              <Car size={22} />
+              <span className="text-xs mt-1">Авто</span>
             </button>
 
             <button
@@ -491,7 +528,7 @@ export default function App() {
               }`}
             >
               <User size={22} />
-              <span className="text-xs mt-1">Profile</span>
+              <span className="text-xs mt-1">Профиль</span>
             </button>
 
           </div>
@@ -503,7 +540,7 @@ export default function App() {
       <AnimatePresence>
 
         {
-          selectedCar && (
+          selectedService && (
 
             <motion.div
               initial={{ opacity: 0 }}
@@ -516,64 +553,194 @@ export default function App() {
                 initial={{ y: 500 }}
                 animate={{ y: 0 }}
                 exit={{ y: 500 }}
-                transition={{ type: 'spring', damping: 18 }}
                 className="bg-[#111111] rounded-t-[40px] p-5 w-full max-w-[430px] mx-auto"
               >
 
-                <img
-                  src={selectedCar.image}
-                  alt=""
-                  className="w-full h-[320px] object-cover rounded-[30px]"
-                />
+                <h2 className="text-3xl font-bold">
+                  {selectedService.title}
+                </h2>
 
-                <div className="mt-5">
+                <p className="text-zinc-400 mt-4">
+                  Оформление записи
+                </p>
 
-                  <h2 className="text-3xl font-bold">
-                    {selectedCar.name}
-                  </h2>
+                <div className="space-y-4 mt-8">
 
-                  <p className="text-zinc-400 mt-2">
-                    {selectedCar.price}
-                  </p>
+                  <div className={`rounded-2xl p-4 border ${
+                    bookingStep >= 1
+                      ? 'border-white'
+                      : 'border-zinc-800'
+                  }`}>
+                    Выбор услуги
+                  </div>
 
-                  <div className="grid grid-cols-3 gap-3 mt-6">
+                  <div className={`rounded-2xl p-4 border ${
+                    bookingStep >= 2
+                      ? 'border-white'
+                      : 'border-zinc-800'
+                  }`}>
 
-                    <div className="bg-[#1A1A1A] rounded-2xl p-4">
-                      <p className="text-zinc-500 text-sm">Power</p>
-                      <h3 className="mt-2 font-semibold">800 HP</h3>
-                    </div>
+                    <p className="mb-3">
+                      Выберите автомобиль
+                    </p>
 
-                    <div className="bg-[#1A1A1A] rounded-2xl p-4">
-                      <p className="text-zinc-500 text-sm">Speed</p>
-                      <h3 className="mt-2 font-semibold">340 km/h</h3>
-                    </div>
+                    <select
+                      value={selectedCar}
+                      onChange={(e) => setSelectedCar(e.target.value)}
+                      className="w-full bg-black border border-zinc-700 rounded-xl p-3"
+                    >
+                      <option>BMW M5 F90</option>
+                      <option>Mercedes AMG GT</option>
+                    </select>
 
-                    <div className="bg-[#1A1A1A] rounded-2xl p-4">
-                      <p className="text-zinc-500 text-sm">0-100</p>
-                      <h3 className="mt-2 font-semibold">2.8s</h3>
+                  </div>
+
+                  <div className={`rounded-2xl p-4 border ${
+                    bookingStep >= 3
+                      ? 'border-white'
+                      : 'border-zinc-800'
+                  }`}>
+
+                    <p className="mb-3">
+                      Выберите время
+                    </p>
+
+                    <div className="flex gap-3">
+
+                      {
+                        ['10:00', '12:00', '15:00'].map((time) => (
+
+                          <button
+                            key={time}
+                            onClick={() => setSelectedTime(time)}
+                            className={`px-4 py-2 rounded-xl ${
+                              selectedTime === time
+                                ? 'bg-white text-black'
+                                : 'bg-zinc-800'
+                            }`}
+                          >
+                            {time}
+                          </button>
+
+                        ))
+                      }
+
                     </div>
 
                   </div>
 
+                  <div className={`rounded-2xl p-4 border ${
+                    bookingStep >= 4
+                      ? 'border-white'
+                      : 'border-zinc-800'
+                  }`}>
+
+                    Подтверждение записи
+
+                  </div>
+
+                </div>
+
+                {
+                  bookingStep < 4 ? (
+
+                    <button
+                      onClick={() => setBookingStep(bookingStep + 1)}
+                      className="w-full bg-white text-black py-4 rounded-2xl font-semibold mt-8"
+                    >
+                      Продолжить
+                    </button>
+
+                  ) : (
+
+                    <button
+                      onClick={() => {
+                        setBookingConfirmed(true)
+                        setSelectedService(null)
+                        setActiveTab('repair')
+                        showToast('Запись успешно создана')
+                      }}
+                      className="w-full bg-green-500 text-white py-4 rounded-2xl font-semibold mt-8"
+                    >
+                      Подтвердить запись
+                    </button>
+
+                  )
+                }
+
+                <button
+                  onClick={() => setSelectedService(null)}
+                  className="w-full mt-4 text-zinc-500"
+                >
+                  Закрыть
+                </button>
+
+              </motion.div>
+
+            </motion.div>
+
+          )
+        }
+
+      </AnimatePresence>
+
+      <AnimatePresence>
+
+        {
+          emergencyModal && (
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-5"
+            >
+
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                className="bg-[#111111] border border-zinc-800 rounded-[30px] p-6 w-full max-w-[380px]"
+              >
+
+                <h2 className="text-2xl font-bold mb-6">
+                  Экстренная помощь
+                </h2>
+
+                <div className="space-y-4">
+
                   <button
-                    onClick={() => {
-                      setSelectedCar(null)
-                      setBookingConfirmed(true)
-                      setActiveTab('booking')
-                    }}
-                    className="w-full bg-white text-black py-4 rounded-2xl font-semibold mt-8"
+                    onClick={() => showToast('Эвакуатор вызван')}
+                    className="w-full bg-[#1A1A1A] p-4 rounded-2xl flex items-center gap-3"
                   >
-                    Book Now
+                    <Phone />
+                    Вызвать эвакуатор
                   </button>
 
                   <button
-                    onClick={() => setSelectedCar(null)}
-                    className="w-full mt-3 text-zinc-500"
+                    onClick={() => showToast('Механик уже едет')}
+                    className="w-full bg-[#1A1A1A] p-4 rounded-2xl flex items-center gap-3"
                   >
-                    Close
+                    <Wrench />
+                    Вызвать механика
+                  </button>
+
+                  <button
+                    onClick={() => showToast('Геолокация отправлена')}
+                    className="w-full bg-[#1A1A1A] p-4 rounded-2xl flex items-center gap-3"
+                  >
+                    <MapPin />
+                    Отправить геолокацию
                   </button>
 
                 </div>
+
+                <button
+                  onClick={() => setEmergencyModal(false)}
+                  className="w-full bg-white text-black py-4 rounded-2xl font-semibold mt-8"
+                >
+                  Закрыть
+                </button>
 
               </motion.div>
 
@@ -597,53 +764,29 @@ export default function App() {
             >
 
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-[#111111] border border-zinc-800 rounded-[32px] p-6 w-full max-w-[380px]"
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                className="bg-[#111111] border border-zinc-800 rounded-[30px] p-6 w-full max-w-[380px]"
               >
-
-                {
-                  profileModal === 'payment' && (
-
-                    <>
-                      <h2 className="text-2xl font-bold mb-6">
-                        Payment Methods
-                      </h2>
-
-                      <div className="space-y-4">
-
-                        <div className="bg-[#1A1A1A] p-4 rounded-2xl">
-                          Visa •••• 2048
-                        </div>
-
-                        <div className="bg-[#1A1A1A] p-4 rounded-2xl">
-                          Apple Pay
-                        </div>
-
-                      </div>
-                    </>
-
-                  )
-                }
 
                 {
                   profileModal === 'history' && (
 
                     <>
                       <h2 className="text-2xl font-bold mb-6">
-                        Rental History
+                        История обслуживания
                       </h2>
 
-                      <div className="bg-[#1A1A1A] p-4 rounded-2xl">
+                      <div className="space-y-4">
 
-                        <h3 className="font-semibold">
-                          Ferrari SF90
-                        </h3>
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          BMW M5 • Замена масла • Апрель 2026
+                        </div>
 
-                        <p className="text-zinc-500 mt-2 text-sm">
-                          Completed rental • April 2026
-                        </p>
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          Mercedes AMG • Диагностика • Март 2026
+                        </div>
 
                       </div>
                     </>
@@ -652,21 +795,45 @@ export default function App() {
                 }
 
                 {
-                  profileModal === 'settings' && (
+                  profileModal === 'notifications' && (
 
                     <>
                       <h2 className="text-2xl font-bold mb-6">
-                        Settings
+                        Напоминания
                       </h2>
 
                       <div className="space-y-4">
 
-                        <div className="bg-[#1A1A1A] p-4 rounded-2xl">
-                          Dark Mode Enabled
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          Замена масла через 1200 км
                         </div>
 
-                        <div className="bg-[#1A1A1A] p-4 rounded-2xl">
-                          Push Notifications Active
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          Рекомендуется диагностика тормозов
+                        </div>
+
+                      </div>
+                    </>
+
+                  )
+                }
+
+                {
+                  profileModal === 'payments' && (
+
+                    <>
+                      <h2 className="text-2xl font-bold mb-6">
+                        Способы оплаты
+                      </h2>
+
+                      <div className="space-y-4">
+
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          Visa •••• 2048
+                        </div>
+
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4">
+                          Apple Pay
                         </div>
 
                       </div>
@@ -679,10 +846,31 @@ export default function App() {
                   onClick={() => setProfileModal(null)}
                   className="w-full bg-white text-black py-4 rounded-2xl font-semibold mt-8"
                 >
-                  Close
+                  Закрыть
                 </button>
 
               </motion.div>
+
+            </motion.div>
+
+          )
+        }
+
+      </AnimatePresence>
+
+      <AnimatePresence>
+
+        {
+          toast && (
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-2xl font-semibold z-[100]"
+            >
+
+              {toast}
 
             </motion.div>
 
